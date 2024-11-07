@@ -171,14 +171,25 @@ class Card_Evaluator:
             pred_masks = model_outputs['pred_masks'][0][len(frames)//2] # nq h w
             pred_scores = model_outputs['pred_class'][0][len(frames)//2] # nq c
             
+            pred_masks = F.interpolate(pred_masks[None, ...], size=gt_masks.shape[-2:], align_corners=False, mode='bilinear')[0]
+
             semantic_masks = self.semantic_inference(pred_scores, pred_masks) # K h w, float
             
-            dice, iou = computer_dice_iou(semantic_masks, gt_masks)
+            dice, iou = compute_dice_iou(semantic_masks, gt_masks)
             all_dices.append(dice)
             all_ious.append(iou)
-
-        return {'dice': torch.tensor(all_dices).mean(),
-                'iou': torch.tensor(all_ious).mean()}
+            
+        all_dices = comm.gather(all_dices, dst=0)
+        all_ious = comm.gather(all_ious, dst=0)
+        
+        eval_metrics = {}
+        if comm.is_main_process():
+            all_dices = torch.cat([torch.tensor(foo) for foo in all_dices] )
+            all_ious = torch.cat([torch.tensor(foo) for foo in all_ious])
+            eval_metrics = {'dice': all_dices.mean(),
+                'iou': all_ious.mean()}
+        comm.synchronize() 
+        return eval_metrics
 
     def semantic_inference(self, mask_cls, mask_pred):
         """
@@ -195,17 +206,34 @@ class Card_Evaluator:
 
 
 
-def computer_dice_iou(pred, gt):
-    # K hw
-    # K hw， 每个类别的平均值, float
-    dices = []
-    ious = []
-    for cls_id in range(len(pred)):
-        inter, union = (pred[cls_id]*gt[cls_id]).sum(), (pred[cls_id]+gt[cls_id]).sum()
-        dice = (2*inter+1)/(union+1)
-        iou = (inter+1)/(union-inter+1)
+def compute_dice_iou(pred_mask, gt_mask):
+    """
+    Computes the Dice and IoU scores for semantic segmentation.
 
-        dices.append(dice)
-        ious.append(iou)
-    
-    return torch.tensor(dices).mean(), torch.tensor(ious).mean()
+    Parameters:
+    - pred_mask (numpy array): Predicted mask of shape (K, h, w) with values in range [0, 1].
+    - gt_mask (numpy array): Ground truth mask of shape (K, h, w) with values 0 or 1.
+
+    Returns:
+    - dice_score (float): Dice score averaged over all channels.
+    - iou_score (float): IoU score averaged over all channels.
+    """
+    pred_mask = pred_mask.numpy()
+    gt_mask = gt_mask.numpy()
+    # Ensure binary predictions for the predicted mask
+    pred_mask = (pred_mask > 0.5).astype(np.float32)
+
+    intersection = np.sum(pred_mask * gt_mask, axis=(1, 2)) # K
+    pred_sum = np.sum(pred_mask, axis=(1, 2)) #
+    gt_sum = np.sum(gt_mask, axis=(1, 2))
+
+    # Dice score calculation
+    dice_score = (2 * intersection) / (pred_sum + gt_sum + 1e-6)  # Adding a small epsilon to avoid division by zero
+    dice_score = np.mean(dice_score)
+
+    # IoU score calculation
+    union = pred_sum + gt_sum - intersection
+    iou_score = intersection / (union + 1e-6)
+    iou_score = np.mean(iou_score)
+
+    return dice_score, iou_score

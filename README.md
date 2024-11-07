@@ -27,7 +27,7 @@ A total of
 In each video, large amounts of area are trivial background region. These region will cause additional computation. 
 Specifically, we use an **[automatic low-level method](https://github.com/bio-mlhui/LGRNet/blob/main/models/encoder/ops/modules/frame_query_ss2d.py#L531)** to remove the background and ighlight the central fanshaped region.
 
-<img src="assets/test.png" width="600"> <img src="assets/test_cropped.png" width="300">
+<img src="assets/test.png" width="400"> <img src="assets/test_cropped.png" width="200">
 
 ### Train/Test Split
 Since the videos are sparsely annotated, we build a benchmark where each test sample is a video clip of 11 frames and its 6th frame is annotated. We only compute Dice and IoU on the 6th frame.
@@ -68,6 +68,7 @@ This idea comes from **[HTML](https://github.com/bio-mlhui/LGRNet/blob/main/mode
 
 
 ## Semi-supervised Cardiac Video Segmentation
+Since there are many unlabeled frames in the dataset, I am wondering using the unsupervised signal to update the model. This idea comes from DINO, where each training image is cropped to 2 bigger crops and 9 smaller crops. 11 crops are input to the ViT. And we get 11 [CLS] tokens after the ViT layers. The Self-Distillation loss is to treat the bigger crop as gt probability distribution and smaller crop as predicted distribution, and uses the cross entropy to compute a total of 18 loss values. This loss can train the model to learn the 'local-to-global' correspondance in a self-supervised manner.
 
 ## Cardiac Video Segmentation == Box Prediction + Box-Promptable SAM2 Segmentation
 Since each cardiac part is a continuous instance (not the scattered region such as sky, grass), we can decompose the video segmentation into Box Prediction and use the predicted boxes as SAM2 prompts to generate video segmentation

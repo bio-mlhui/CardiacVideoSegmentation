@@ -354,10 +354,10 @@ class Card_Model(OptimizeModel):
         if isinstance(decoder_output, list):
             decoder_output = decoder_output[-1]
         pred_masks = decoder_output['pred_masks'][0] # T n h w
-        pred_masks = F.interpolate(pred_masks, size=(H, W), mode='bilinear') > 0 # T n h w
+        pred_masks = F.interpolate(pred_masks, size=(H, W), mode='bilinear') # T n h w
         pred_masks = pred_masks[:orig_t, :, :orig_h, :orig_w] # T n h w
         #
-        pred_classes = decoder_output['pred_class'][0][:orig_t, :,:] # T n c, probability
+        pred_classes = decoder_output['pred_class'][0][:orig_t, :,:] # T n c, softmax logits
         pred_classes = pred_classes.cpu().unbind(0) # list[n c], T
         pred_masks = pred_masks.cpu().unbind(0) # list[n h w], T
 
