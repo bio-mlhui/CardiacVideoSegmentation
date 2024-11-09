@@ -26,38 +26,6 @@ class Frames_Sampler:
 class Naive_ReferenceFrame_FrameSampler:
     # naive: 没有使用外部模型或者数据, # 没有考虑每一帧的情况, 只是按照下标进行抽样
     def __init__(self, sampler_configs, dataset_meta, **kwargs):            
-        assert dataset_meta.get('name') in ['polyp_train_step[1]', 
-                                            'polyp_train_step[3]',
-                                            'polyp_train_step[6]', 
-                                            'polyp_train_step[9]',
-                                            'weakpolyp_train_step[1]',
-                                            'polyp_hard_unseen_validate_step[1]',
-                                            'polyp_easy_unseen_validate_step[1]',
-                                            'polyp_hard_seen_validate_step[1]',
-                                            'polyp_easy_seen_validate_step[1]',
-                                            'weakpolyp_fibroid_train_step[1]',
-                                            'fibroid_validate_step[1]',
-                                            'fibroid_train_step[1]',
-                                            'Kvasir-train_step[1]',
-                                            'Mayo-train_step[6]', '300-train_step[6]', '612-train_step[6]',
-                                            'fibroid_train_temp7_step[6]',
-                                            'fibroid_train_temp8_step[6]',
-                                            'fibroid_train_temp9_step[1]',
-                                            'fibroid_train_temp10_step[1]',
-
-                                            'fibroid_validate_temp7_step[1]',
-                                            'fibroid_validate_temp8_step[1]',
-                                            'fibroid_validate_temp9_step[1]',
-                                            'fibroid_validate_temp10_step[1]',
-
-                                            'weakpolyp_fibroid_train_temp7_step[1]',
-                                            'weakpolyp_fibroid_train_temp8_step[1]',
-                                            'weakpolyp_fibroid_train_temp9_step[1]'
-                                            'weakpolyp_fibroid_train_temp10_step[1]',
-
-                                            'visha_train_step[6]'
-                                            
-                                            ]
         self.reference_frame_step_size = dataset_meta.get('step_size')
 
         self.clip_sizes = list(sampler_configs['clip_sizes']) # list[int]
@@ -118,6 +86,57 @@ class Naive_ReferenceFrame_FrameSampler:
         sampled_frames = [all_frames[idx] for idx in sample_indx]
         return sampled_frames
 
+
+@VIS_FRAMES_SAMPLER_REGISTRY.register()
+class ReferenceFrame_FrameSampler:
+    # naive: 没有使用外部模型或者数据, # 没有考虑每一帧的情况, 只是按照下标进行抽样
+    def __init__(self, sampler_configs, dataset_meta, **kwargs):            
+        reference_frame_step_size = dataset_meta.get('step_size')
+
+        self.clip_sizes = list(sampler_configs['clip_sizes']) # list[int]
+        self.clip_distribute = sampler_configs['clip_distribute'] # dense, sparse, local_global
+        self.clip_position = sampler_configs['clip_position'] # former, center, latter
+
+        if  reference_frame_step_size is not None:
+            if max(self.clip_sizes) > reference_frame_step_size:
+                if comm.is_main_process():
+                    logging.warning('训练的clip大小大于数据集的step size,可能会造成训练时每个sample之间帧重复')
+
+    def __call__(self, 
+                 frame_idx=None,
+                 all_frames=None, # list[str]
+                 **kwargs):
+        random_clip_size = random.choice(self.clip_sizes)
+        ann_frame_idx = all_frames.index(frame_idx)
+        left_len = random_clip_size // 2 
+        right_len = (random_clip_size - 1) // 2
+        if (self.clip_position == 'center') and (self.clip_distribute == 'local_global'):
+            video_len = len(all_frames)
+            assert random_clip_size >= 3          
+            # local sample, 从附近3个帧抽
+            before_idx = max(ann_frame_idx - random.randint(1, 3), 0)
+            after_idx = min(ann_frame_idx + random.randint(1, 3), video_len - 1)
+            sample_indx = [before_idx, ann_frame_idx, after_idx]
+            # global sample, 从比较远的地方抽
+            if random_clip_size > 3:
+                remain_left_idxs = torch.tensor(list(range(0, min(sample_indx)+1))).numpy()
+                remain_right_idxs = torch.tensor(list(range(max(sample_indx), video_len))).numpy()
+                sampled_lefts = np.random.choice(remain_left_idxs, left_len - 1).tolist()
+                sampled_rights = np.random.choice(remain_right_idxs, right_len - 1).tolist()
+                sample_indx = sampled_lefts + sample_indx + sampled_rights
+
+            sampled_frames = [all_frames[idx] for idx in sample_indx]
+            return sampled_frames 
+          
+        elif (self.clip_position == 'center') and (self.clip_distribute == 'dense'):
+            ann_frame_idx = all_frames.index(frame_idx)
+            all_idxs = list(range(ann_frame_idx - random_clip_size// 2, ann_frame_idx + (random_clip_size+1)//2))
+            all_idxs = torch.tensor(all_idxs).clamp(0, max=len(all_frames)-1).int() # annotate_frame_idx = T//2
+            frames = [all_frames[idx] for idx in all_idxs]
+            return frames
+
+        else:
+            raise ValueError()
 
 
 @VIS_FRAMES_SAMPLER_REGISTRY.register()

@@ -270,7 +270,7 @@ class Card_EvalMapper(VIS_Mapper):
                 'request_ann': request_ann,            
             }
         }
-
+from .vis_frame_sampler import VIS_FRAMES_SAMPLER_REGISTRY
 @MAPPER_REGISTRY.register()
 class Card_TrainMapper(VIS_TrainMapper):
     def __init__(self, 
@@ -288,14 +288,14 @@ class Card_TrainMapper(VIS_TrainMapper):
             T.Resize((mapper_config['res'],mapper_config['res']), interpolation=Image.BILINEAR), 
             T.ToTensor()
         ])
-        if mode == 'train':
-            self.local_global_sampling = mapper_config['local_global_sampling']
-        
         self.get_frames_mask_fn = dataset_meta.get('get_frames_mask_fn')
-
+        
+        self.frame_sampler = VIS_FRAMES_SAMPLER_REGISTRY.get(mapper_config['frame_sampler']['name'])\
+            (sampler_configs=mapper_config['frame_sampler'], dataset_meta=dataset_meta)
+        
     def _call(self, data_dict):
         video_id, all_frames, frame_idx = data_dict['video_id'], data_dict['all_frames'], data_dict['frame_idx']
-        frames = get_frames_from_middle_frame(all_frames=all_frames,  mid_frame_id=frame_idx, step_size=self.step_size)
+        frames = self.frame_sampler(frame_idx=frame_idx, all_frames=all_frames)
         video_frames = self.get_frames_fn(video_id=video_id, frames=frames) 
         video_frames = [self.transform(frame) for frame in video_frames] # list[3 h w]
         video_frames = torch.stack(video_frames, dim=0) # t 3 h w, 0-1

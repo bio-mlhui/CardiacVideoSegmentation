@@ -75,7 +75,8 @@ class VIS_EvalMapper(VIS_Mapper):
         self.augmentation = VIS_EVAL_AUG_REGISTRY.get(mapper_config['augmentation']['name'])(mapper_config['augmentation'])
         
 
-def get_frames_from_middle_frame(all_frames, mid_frame_id, step_size):
+def get_frames_from_middle_frame(all_frames, mid_frame_id, step_size,
+                                lg_sample=False):
     # 根据step_size进行选择中间的
     # 5, 7 -> range(2, 9):2345678; 5, 6 -> range(2, 8):234567
     ann_frame_idx = all_frames.index(mid_frame_id)

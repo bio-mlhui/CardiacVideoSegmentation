@@ -3,15 +3,15 @@ This repo uses the same framework as **[MyFramework](https://www.kaggle.com/data
 
 All experiments are based on the **[CardiacUDC](https://www.kaggle.com/datasets/xiaoweixumedicalai/cardiacudc-dataset)** dataset. 
 
-We plan to first run LGRNet (a supervised Non-autoregressive small-model) on the CardiacUDC. After that, we plan to validate several novel designs including "Hybrid Temporal Sampling (HTS)", "Self-supervised Temporal Local-to-Global Self-Distillation (LGSD)", "box and SAM2 (BOX-SAM2)", "AutoRegressive Segmentation beats Unet (AR-SEG)".  
+We plan to first run LGRNet (a supervised Non-autoregressive small-model) on the CardiacUDC. After that, we plan to validate several novel designs including "Hybrid Temporal Sampling (HTS)", "Self-supervised Temporal Local-to-Global Self-Distillation (LGSD)",  "AutoRegressive Segmentation beats Unet (AR-SEG)".  
 
 You can click links in each part to check the corresponding implementation.
 
 
 | Model| FLOPS | #PARAMS | Dice | mIou | $\text{log}^1$ | ckpt | prediction video |
 | :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: |
-| BASIC | NAN | NAN | NAN | NAN | [log](https://drive.google.com/file/d/1wdVMWMknSlURaBROWbMax4iS9V1Tbn9-/view?usp=sharing) |[ckpt](https://drive.google.com/file/d/1D4YAIfFCCQIsDfKgSCr9tCw7vDAgqf76/view?usp=sharing) | [mask predictions](https://drive.google.com/file/d/1V8CDMC87o7t4eyts4BVEwflDUrFpAOVX/view?usp=sharing)
-| +HTS | NAN | NAN | NAN | NAN | [log](https://drive.google.com/file/d/1wdVMWMknSlURaBROWbMax4iS9V1Tbn9-/view?usp=sharing) |[ckpt](https://drive.google.com/file/d/1D4YAIfFCCQIsDfKgSCr9tCw7vDAgqf76/view?usp=sharing) | [mask predictions](https://drive.google.com/file/d/1V8CDMC87o7t4eyts4BVEwflDUrFpAOVX/view?usp=sharing)
+| BASIC | NAN | NAN | 71.4 | 64.3 | [log](https://drive.google.com/file/d/1wdVMWMknSlURaBROWbMax4iS9V1Tbn9-/view?usp=sharing) |[ckpt](https://drive.google.com/file/d/1D4YAIfFCCQIsDfKgSCr9tCw7vDAgqf76/view?usp=sharing) | [mask predictions](https://drive.google.com/file/d/1V8CDMC87o7t4eyts4BVEwflDUrFpAOVX/view?usp=sharing)
+| +HTS | NAN | NAN | 71.4 | 64.4 | [log](https://drive.google.com/file/d/1wdVMWMknSlURaBROWbMax4iS9V1Tbn9-/view?usp=sharing) |[ckpt](https://drive.google.com/file/d/1D4YAIfFCCQIsDfKgSCr9tCw7vDAgqf76/view?usp=sharing) | [mask predictions](https://drive.google.com/file/d/1V8CDMC87o7t4eyts4BVEwflDUrFpAOVX/view?usp=sharing)
 | +LGSD | NAN | NAN | NAN | NAN | [log](https://drive.google.com/file/d/1wdVMWMknSlURaBROWbMax4iS9V1Tbn9-/view?usp=sharing) |[ckpt](https://drive.google.com/file/d/1D4YAIfFCCQIsDfKgSCr9tCw7vDAgqf76/view?usp=sharing) | [mask predictions](https://drive.google.com/file/d/1V8CDMC87o7t4eyts4BVEwflDUrFpAOVX/view?usp=sharing)
 | BOX-SAM2 | NAN | NAN | NAN | NAN| [log](https://drive.google.com/file/d/1wdVMWMknSlURaBROWbMax4iS9V1Tbn9-/view?usp=sharing) |[ckpt](https://drive.google.com/file/d/1D4YAIfFCCQIsDfKgSCr9tCw7vDAgqf76/view?usp=sharing) | [mask predictions](https://drive.google.com/file/d/1V8CDMC87o7t4eyts4BVEwflDUrFpAOVX/view?usp=sharing)
 | AR-SEG | NAN | NAN | NAN | NAN | [log](https://drive.google.com/file/d/1wdVMWMknSlURaBROWbMax4iS9V1Tbn9-/view?usp=sharing) |[ckpt](https://drive.google.com/file/d/1D4YAIfFCCQIsDfKgSCr9tCw7vDAgqf76/view?usp=sharing) | [mask predictions](https://drive.google.com/file/d/1V8CDMC87o7t4eyts4BVEwflDUrFpAOVX/view?usp=sharing)
@@ -69,11 +69,6 @@ This idea comes from **[HTML](https://github.com/bio-mlhui/LGRNet/blob/main/mode
 
 ## Semi-supervised Cardiac Video Segmentation
 Since there are many unlabeled frames in the dataset, I am wondering using the unsupervised signal to update the model. This idea comes from DINO, where each training image is cropped to 2 bigger crops and 9 smaller crops. 11 crops are input to the ViT. And we get 11 [CLS] tokens after the ViT layers. The Self-Distillation loss is to treat the bigger crop as gt probability distribution and smaller crop as predicted distribution, and uses the cross entropy to compute a total of 18 loss values. This loss can train the model to learn the 'local-to-global' correspondance in a self-supervised manner.
-
-## Cardiac Video Segmentation == Box Prediction + Box-Promptable SAM2 Segmentation
-Since each cardiac part is a continuous instance (not the scattered region such as sky, grass), we can decompose the video segmentation into Box Prediction and use the predicted boxes as SAM2 prompts to generate video segmentation
-
-### 
 
 ## Decoder-only AutoRegressive Segmentation beats Unet, Segformer, and Mask2Former for Medical Image Segmentation.
 
