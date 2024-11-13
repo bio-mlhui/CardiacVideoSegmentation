@@ -1,5 +1,5 @@
 # Overview
-This repo uses the same framework as **[MyFramework](https://www.kaggle.com/datasets/xiaoweixumedicalai/cardiacudc-dataset)**. The modifications are new  **[Dataset Registers](https://www.kaggle.com/datasets/xiaoweixumedicalai/cardiacudc-dataset)**, **[Mapper](https://www.kaggle.com/datasets/xiaoweixumedicalai/cardiacudc-dataset)**, **[Evaluator](https://www.kaggle.com/datasets/xiaoweixumedicalai/cardiacudc-dataset)**, and correspoind several Model implementations.
+This repo uses the same framework as **[MyFramework](https://github.com/bio-mlhui/MyFramework)**. 
 
 All experiments are based on the **[CardiacUDC](https://www.kaggle.com/datasets/xiaoweixumedicalai/cardiacudc-dataset)** dataset. 
 
@@ -10,11 +10,11 @@ You can click links in each part to check the corresponding implementation.
 
 | Model| FLOPS | #PARAMS | Dice | mIou | $\text{log}^1$ | ckpt | prediction video |
 | :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: |
-| BASIC | NAN | NAN | 71.4 | 64.3 | [log](https://drive.google.com/file/d/1wdVMWMknSlURaBROWbMax4iS9V1Tbn9-/view?usp=sharing) |[ckpt](https://drive.google.com/file/d/1D4YAIfFCCQIsDfKgSCr9tCw7vDAgqf76/view?usp=sharing) | [mask predictions](https://drive.google.com/file/d/1V8CDMC87o7t4eyts4BVEwflDUrFpAOVX/view?usp=sharing)
-| +HTS | NAN | NAN | 71.4 | 64.4 | [log](https://drive.google.com/file/d/1wdVMWMknSlURaBROWbMax4iS9V1Tbn9-/view?usp=sharing) |[ckpt](https://drive.google.com/file/d/1D4YAIfFCCQIsDfKgSCr9tCw7vDAgqf76/view?usp=sharing) | [mask predictions](https://drive.google.com/file/d/1V8CDMC87o7t4eyts4BVEwflDUrFpAOVX/view?usp=sharing)
-| +LGSD | NAN | NAN | NAN | NAN | [log](https://drive.google.com/file/d/1wdVMWMknSlURaBROWbMax4iS9V1Tbn9-/view?usp=sharing) |[ckpt](https://drive.google.com/file/d/1D4YAIfFCCQIsDfKgSCr9tCw7vDAgqf76/view?usp=sharing) | [mask predictions](https://drive.google.com/file/d/1V8CDMC87o7t4eyts4BVEwflDUrFpAOVX/view?usp=sharing)
-| BOX-SAM2 | NAN | NAN | NAN | NAN| [log](https://drive.google.com/file/d/1wdVMWMknSlURaBROWbMax4iS9V1Tbn9-/view?usp=sharing) |[ckpt](https://drive.google.com/file/d/1D4YAIfFCCQIsDfKgSCr9tCw7vDAgqf76/view?usp=sharing) | [mask predictions](https://drive.google.com/file/d/1V8CDMC87o7t4eyts4BVEwflDUrFpAOVX/view?usp=sharing)
-| AR-SEG | NAN | NAN | NAN | NAN | [log](https://drive.google.com/file/d/1wdVMWMknSlURaBROWbMax4iS9V1Tbn9-/view?usp=sharing) |[ckpt](https://drive.google.com/file/d/1D4YAIfFCCQIsDfKgSCr9tCw7vDAgqf76/view?usp=sharing) | [mask predictions](https://drive.google.com/file/d/1V8CDMC87o7t4eyts4BVEwflDUrFpAOVX/view?usp=sharing)
+| BASIC | NAN | NAN | 71.4 | 64.3 | NAN | NAN
+| +HTS | NAN | NAN | 71.4 | 64.4 | NAN | NAN
+| +LGSD | NAN | NAN | NAN | NAN | NAN | NAN
+| BOX-SAM2 | NAN | NAN | NAN | NAN| NAN | NAN
+| AR-SEG | NAN | NAN | NAN | NAN | NAN | NAN
 
 ###### 1: The log is colored, so you need to use the vscode ANSI extention to view the log file.
 
